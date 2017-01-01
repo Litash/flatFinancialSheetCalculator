@@ -1,31 +1,42 @@
 # -*- coding: UTF-8 -*-
-import gspread, requests, schedule, time, datetime
+import gspread, schedule, time
 from oauth2client.service_account import ServiceAccountCredentials
-from bs4 import BeautifulSoup
+
 
 def job():
     scope = ['https://spreadsheets.google.com/feeds']
 
-    credentials = ServiceAccountCredentials.from_json_keyfile_name('tvReminder-9c2fc76b87b6.json', scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        'key-69901d35c3db.json', scope)
 
     gc = gspread.authorize(credentials)
 
     worksheet = gc.open("Flat Financial Sheet").sheet1
 
-    dlurl_cells = worksheet.range('E2:E62')
-    note_cells = worksheet.range('F2:F62')
-    update_cells = worksheet.range('G2:G62')
+    list_of_lists = worksheet.get_all_values()
+    total = 0
+    value = 0
+    for record in list_of_lists:
+        if record[4] == "FALSE":
+            value = record[1]
+            if record[2] == "WBQ":
+                total -= float(value)
+            elif record[2] == "LYC":
+                total += float(value)
 
-    isUpdate = 0
+    payingTo = ""
+    if total >= 0:
+        payingTo = "LYC"
+    else:
+        payingTo = "WBQ"
 
-    # Update in batch
-    if isUpdate==1 :
-        worksheet.update_cells(note_cells)
-        worksheet.update_cells(update_cells)
+    result_cell = worksheet.update_acell('H2', total)
+    payingTo_cell = worksheet.update_acell('I2', payingTo)
+
 
 if __name__ == '__main__':
     job()
-    schedule.every(1).days.do(job)
+    schedule.every(12).hours.do(job)
     while True:
         schedule.run_pending()
         time.sleep(1)
