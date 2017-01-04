@@ -32,6 +32,7 @@ def job():
 
     result_cell = worksheet.update_acell('H2', total)
     payingTo_cell = worksheet.update_acell('I2', payingTo)
+    updtTime_cell = worksheet.update_acell('J2', time.strftime("%d/%b/%Y %H:%M:%S", time.gmtime()))
 
 
 if __name__ == '__main__':
